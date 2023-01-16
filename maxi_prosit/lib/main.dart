@@ -1,5 +1,28 @@
 import 'package:flutter/material.dart';
 import 'document.dart';
+import 'package:get/get.dart';
+
+Text platForm() {
+  if (GetPlatform.isAndroid) {
+    return const Text("Android");
+  }
+  if (GetPlatform.isIOS) {
+    return const Text("IOS");
+  }
+  if (GetPlatform.isLinux) {
+    return const Text("Linux");
+  }
+  if (GetPlatform.isMacOS) {
+    return const Text("MacOS");
+  }
+  if (GetPlatform.isWeb) {
+    return const Text("Web");
+  }
+  if (GetPlatform.isWindows) {
+    return const Text("Windows");
+  }
+  return const Text("Error");
+}
 
 void main() => runApp(MyApp());
 
@@ -34,9 +57,10 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.home),
-            Text(" Accueil"),
+          children: [
+            platForm(),
+            const Icon(Icons.home),
+            const Text(" Accueil"),
           ],
         ),
       ),
