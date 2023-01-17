@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'dart:io';
 import 'mobile.dart' if (dart.library.html) 'web.dart';
 import 'package:flutter/services.dart';
+import 'database.dart';
 
 double listBoxLength = 200;
 
-//Informations :
-String documentName = "Nouveau Document";
+DataBase db = DataBase();
+
 String prositUrl = "";
 String prositTitle = "";
 
 // Keywords :
 Map<int, Row> mapKeyWords = {};
 Map<int, TextEditingController> mapKeyWordsControllers = {};
-int keyWordIndex = 0;
+int keyWordIndex = mapKeyWordsControllers.length;
 
 //Context :
 String stringContext = "";
@@ -24,40 +24,41 @@ String stringContext = "";
 //Problem :
 Map<int, Row> mapProblem = {};
 Map<int, TextEditingController> mapProblemControllers = {};
-int problemIndex = 0;
+int problemIndex = mapProblemControllers.length;
 
 //Constraint :
 Map<int, Row> mapConstraint = {};
 Map<int, TextEditingController> mapConstraintControllers = {};
-int constraintIndex = 0;
+int constraintIndex = mapConstraintControllers.length;
 
 //Deliverable :
 Map<int, Row> mapDeliverable = {};
 Map<int, TextEditingController> mapDeliverableControllers = {};
-int deliverableIndex = 0;
+int deliverableIndex = mapDeliverableControllers.length;
 
 //Generelazing :
 Map<int, Row> mapGenerelazing = {};
 Map<int, TextEditingController> mapGenerelazingControllers = {};
-int generelazingIndex = 0;
+int generelazingIndex = mapGenerelazingControllers.length;
 
 //Hypothesis :
 Map<int, Row> mapHypothesis = {};
 Map<int, TextEditingController> mapHypothesisControllers = {};
-int hypothesisIndex = 0;
+int hypothesisIndex = mapHypothesisControllers.length;
 
 // Solutions :
 Map<int, Row> mapSolutions = {};
 Map<int, TextEditingController> mapSolutionsControllers = {};
-int solutionsIndex = 0;
+int solutionsIndex = mapSolutionsControllers.length;
 
 // Actions :
 Map<int, Row> mapAction = {};
 Map<int, TextEditingController> mapActionControllers = {};
-int actionIndex = 0;
+int actionIndex = mapActionControllers.length;
 
 class DocumentPage extends StatefulWidget {
-  const DocumentPage({super.key});
+  final int ID;
+  const DocumentPage({Key? key, required this.ID}) : super(key: key);
 
   @override
   State<DocumentPage> createState() => _DocumentPageState();
@@ -65,7 +66,7 @@ class DocumentPage extends StatefulWidget {
 
 class _DocumentPageState extends State<DocumentPage> {
   int currentIndex = 0;
-  late Widget documentNameWidget = Text(documentName);
+  late Widget documentNameWidget = Text(db.documentName);
   List<String> pagesNames = const [
     "Informations",
     "Mot(s) Clé(s)",
@@ -80,6 +81,7 @@ class _DocumentPageState extends State<DocumentPage> {
   ];
   @override
   Widget build(BuildContext context) {
+    db.documentID = widget.ID;
     late ListView pageList = ListView.builder(
       itemCount: pagesNames.length,
       itemBuilder: (context, index) {
@@ -111,6 +113,7 @@ class _DocumentPageState extends State<DocumentPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text(db.documentID.toString()),
               documentNameWidget,
               const Text(" "),
               GestureDetector(
@@ -127,17 +130,17 @@ class _DocumentPageState extends State<DocumentPage> {
                           cursorColor: Colors.black,
                           onSubmitted: (text) {
                             if (text == "") {
-                              documentName = "Nouveau Document";
+                              db.documentName = "Nouveau Document";
                             } else {
-                              documentName = text;
+                              db.documentName = text;
                             }
                             setState(() {
-                              documentNameWidget = Text(documentName);
+                              documentNameWidget = Text(db.documentName);
                             });
                           },
                           decoration: InputDecoration(
                             border: const OutlineInputBorder(),
-                            hintText: documentName,
+                            hintText: db.documentName,
                           ),
                         ),
                       );
@@ -149,8 +152,7 @@ class _DocumentPageState extends State<DocumentPage> {
           ),
         ),
       ),
-      endDrawer: GetPlatform.isAndroid ||
-              GetPlatform.isIOS ||
+      endDrawer: GetPlatform.isMobile ||
               (MediaQuery.of(context).size.width < 500) //|| true
           ? Drawer(
               child: pageList,
@@ -158,13 +160,21 @@ class _DocumentPageState extends State<DocumentPage> {
           : null,
       body: Row(
         children: [
-          if ((!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
+          if ((!GetPlatform.isMobile) &&
               (MediaQuery.of(context).size.width >= 500))
             SizedBox(
               width: listBoxLength,
               child: pageList,
             ),
-          pageSelector(currentIndex),
+          SizedBox(
+            width: (!GetPlatform.isMobile) &&
+                    (MediaQuery.of(context).size.width >= 500) //&& false
+                ? MediaQuery.of(context).size.width - listBoxLength
+                : MediaQuery.of(context).size.width,
+            child: Center(
+              child: pageSelector(currentIndex),
+            ),
+          )
         ],
       ),
       bottomNavigationBar: Container(
@@ -241,65 +251,57 @@ class _InformationPageState extends State<InformationPage> {
     TextEditingController urlController = TextEditingController();
     titleController.text = prositTitle;
     urlController.text = prositUrl;
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    const Text("Titre du prosit : "),
-                    Container(
-                      width: 250,
-                      alignment: Alignment.centerLeft,
-                      color: Colors.white,
-                      child: TextField(
-                        onChanged: (value) {
-                          prositTitle = value;
-                        },
-                        controller: titleController,
-                        cursorColor: Colors.black,
-                        decoration: const InputDecoration(
-                          hoverColor: Colors.black,
-                          border: OutlineInputBorder(),
-                          hintText: "",
-                        ),
-                      ),
+                const Text("Titre du prosit : "),
+                Container(
+                  width: 250,
+                  alignment: Alignment.centerLeft,
+                  color: Colors.white,
+                  child: TextField(
+                    onChanged: (value) {
+                      db.prositTitle = value;
+                    },
+                    controller: titleController,
+                    cursorColor: Colors.black,
+                    decoration: const InputDecoration(
+                      hoverColor: Colors.black,
+                      border: OutlineInputBorder(),
+                      hintText: "",
                     ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text("Url du prosit : "),
-                    Container(
-                      width: 250,
-                      alignment: Alignment.centerLeft,
-                      color: Colors.white,
-                      child: TextField(
-                        onChanged: (value) {
-                          prositUrl = value;
-                        },
-                        controller: urlController,
-                        cursorColor: Colors.black,
-                        decoration: const InputDecoration(
-                          hoverColor: Colors.black,
-                          border: OutlineInputBorder(),
-                          hintText: "",
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
+            Row(
+              children: [
+                const Text("Url du prosit : "),
+                Container(
+                  width: 250,
+                  alignment: Alignment.centerLeft,
+                  color: Colors.white,
+                  child: TextField(
+                    onChanged: (value) {
+                      db.prositUrl = value;
+                    },
+                    controller: urlController,
+                    cursorColor: Colors.black,
+                    decoration: const InputDecoration(
+                      hoverColor: Colors.black,
+                      border: OutlineInputBorder(),
+                      hintText: "",
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -342,50 +344,42 @@ class _KeyWordsPageState extends State<KeyWordsPage> {
       mapKeyWords[keyWordIndex] = row(keyWordIndex);
     }
 
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            //for (var item in listKeyWordString) item,
+            for (var item in mapKeyWords.values) item,
+            Row(
               children: [
-                //for (var item in listKeyWordString) item,
-                for (var item in mapKeyWords.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter un mot clé",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          keyWordIndex++;
-                          mapKeyWords[keyWordIndex] = row(keyWordIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapKeyWords.isEmpty) return;
-                          mapKeyWords.remove(keyWordIndex);
-                          keyWordIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter un mot clé",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      keyWordIndex++;
+                      mapKeyWords[keyWordIndex] = row(keyWordIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapKeyWords.isEmpty) return;
+                      mapKeyWords.remove(keyWordIndex);
+                      keyWordIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -404,42 +398,34 @@ class _ContextPageState extends State<ContextPage> {
   @override
   Widget build(BuildContext context) {
     textarea.text = stringContext;
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 250,
-                      alignment: Alignment.centerLeft,
-                      color: Colors.white,
-                      child: TextField(
-                        maxLines: null,
-                        cursorColor: Colors.black,
-                        controller: textarea,
-                        onChanged: (value) {
-                          stringContext = value;
-                        },
-                        decoration: const InputDecoration(
-                          hoverColor: Colors.black,
-                          border: OutlineInputBorder(),
-                          hintText: "Contexte",
-                        ),
-                      ),
+                Container(
+                  width: 250,
+                  alignment: Alignment.centerLeft,
+                  color: Colors.white,
+                  child: TextField(
+                    maxLines: null,
+                    cursorColor: Colors.black,
+                    controller: textarea,
+                    onChanged: (value) {
+                      stringContext = value;
+                    },
+                    decoration: const InputDecoration(
+                      hoverColor: Colors.black,
+                      border: OutlineInputBorder(),
+                      hintText: "Contexte",
                     ),
-                  ],
-                )
+                  ),
+                ),
               ],
-            ),
-          ),
+            )
+          ],
         ),
       ),
     );
@@ -481,50 +467,42 @@ class _ProblemPageState extends State<ProblemPage> {
       problemIndex = 0;
       mapProblem[problemIndex] = row(problemIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            //for (var item in listKeyWordString) item,
+            for (var item in mapProblem.values) item,
+            Row(
               children: [
-                //for (var item in listKeyWordString) item,
-                for (var item in mapProblem.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter une problématique",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          problemIndex++;
-                          mapProblem[problemIndex] = row(problemIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapProblem.isEmpty) return;
-                          mapProblem.remove(problemIndex);
-                          problemIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter une problématique",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      problemIndex++;
+                      mapProblem[problemIndex] = row(problemIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapProblem.isEmpty) return;
+                      mapProblem.remove(problemIndex);
+                      problemIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -566,50 +544,42 @@ class _ConstraintPageState extends State<ConstraintPage> {
       constraintIndex = 0;
       mapConstraint[constraintIndex] = row(constraintIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            //for (var item in listKeyWordString) item,
+            for (var item in mapConstraint.values) item,
+            Row(
               children: [
-                //for (var item in listKeyWordString) item,
-                for (var item in mapConstraint.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter une contrainte",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          constraintIndex++;
-                          mapConstraint[constraintIndex] = row(constraintIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapConstraint.isEmpty) return;
-                          mapConstraint.remove(constraintIndex);
-                          constraintIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter une contrainte",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      constraintIndex++;
+                      mapConstraint[constraintIndex] = row(constraintIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapConstraint.isEmpty) return;
+                      mapConstraint.remove(constraintIndex);
+                      constraintIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -651,51 +621,42 @@ class _DeliverablePageState extends State<DeliverablePage> {
       deliverableIndex = 0;
       mapDeliverable[deliverableIndex] = row(deliverableIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            //for (var item in listKeyWordString) item,
+            for (var item in mapDeliverable.values) item,
+            Row(
               children: [
-                //for (var item in listKeyWordString) item,
-                for (var item in mapDeliverable.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter un livrable",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          deliverableIndex++;
-                          mapDeliverable[deliverableIndex] =
-                              row(deliverableIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapDeliverable.isEmpty) return;
-                          mapDeliverable.remove(deliverableIndex);
-                          deliverableIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter un livrable",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      deliverableIndex++;
+                      mapDeliverable[deliverableIndex] = row(deliverableIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapDeliverable.isEmpty) return;
+                      mapDeliverable.remove(deliverableIndex);
+                      deliverableIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -737,51 +698,43 @@ class _GenerelazingPageState extends State<GenerelazingPage> {
       generelazingIndex = 0;
       mapGenerelazing[generelazingIndex] = row(generelazingIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            //for (var item in listKeyWordString) item,
+            for (var item in mapGenerelazing.values) item,
+            Row(
               children: [
-                //for (var item in listKeyWordString) item,
-                for (var item in mapGenerelazing.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter une généralisation",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          generelazingIndex++;
-                          mapGenerelazing[generelazingIndex] =
-                              row(generelazingIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapGenerelazing.isEmpty) return;
-                          mapGenerelazing.remove(generelazingIndex);
-                          generelazingIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter une généralisation",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      generelazingIndex++;
+                      mapGenerelazing[generelazingIndex] =
+                          row(generelazingIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapGenerelazing.isEmpty) return;
+                      mapGenerelazing.remove(generelazingIndex);
+                      generelazingIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -824,50 +777,42 @@ class _HypothesisPageState extends State<HypothesisPage> {
       hypothesisIndex = 0;
       mapHypothesis[hypothesisIndex] = row(hypothesisIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            //for (var item in listKeyWordString) item,
+            for (var item in mapHypothesis.values) item,
+            Row(
               children: [
-                //for (var item in listKeyWordString) item,
-                for (var item in mapHypothesis.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter une hypothèse",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          hypothesisIndex++;
-                          mapHypothesis[hypothesisIndex] = row(hypothesisIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapHypothesis.isEmpty) return;
-                          mapHypothesis.remove(hypothesisIndex);
-                          hypothesisIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter une hypothèse",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      hypothesisIndex++;
+                      mapHypothesis[hypothesisIndex] = row(hypothesisIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapHypothesis.isEmpty) return;
+                      mapHypothesis.remove(hypothesisIndex);
+                      hypothesisIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -910,49 +855,41 @@ class _SolutionsPageState extends State<SolutionsPage> {
       solutionsIndex = 0;
       mapSolutions[solutionsIndex] = row(solutionsIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            for (var item in mapSolutions.values) item,
+            Row(
               children: [
-                for (var item in mapSolutions.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter une piste de solutions",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          solutionsIndex++;
-                          mapSolutions[solutionsIndex] = row(solutionsIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapSolutions.isEmpty) return;
-                          mapSolutions.remove(solutionsIndex);
-                          solutionsIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter une piste de solutions",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      solutionsIndex++;
+                      mapSolutions[solutionsIndex] = row(solutionsIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapSolutions.isEmpty) return;
+                      mapSolutions.remove(solutionsIndex);
+                      solutionsIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -995,49 +932,41 @@ class _ActionPageState extends State<ActionPage> {
       actionIndex = 0;
       mapAction[actionIndex] = row(actionIndex);
     }
-    return SizedBox(
-      width: (!GetPlatform.isAndroid && !GetPlatform.isIOS) &&
-              (MediaQuery.of(context).size.width >= 500) //&& false
-          ? MediaQuery.of(context).size.width - listBoxLength
-          : MediaQuery.of(context).size.width,
-      child: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: Column(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            for (var item in mapAction.values) item,
+            Row(
               children: [
-                for (var item in mapAction.values) item,
-                Row(
-                  children: [
-                    ElevatedButton(
-                      child: const Text("Ajouter une action",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          actionIndex++;
-                          mapAction[actionIndex] = row(actionIndex);
-                        });
-                      },
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text("Supprimer",
-                          style: TextStyle(color: Colors.black)),
-                      onPressed: () {
-                        setState(() {
-                          if (mapAction.isEmpty) return;
-                          mapAction.remove(actionIndex);
-                          actionIndex--;
-                        });
-                      },
-                    ),
-                  ],
+                ElevatedButton(
+                  child: const Text("Ajouter une action",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      actionIndex++;
+                      mapAction[actionIndex] = row(actionIndex);
+                    });
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text("Supprimer",
+                      style: TextStyle(color: Colors.black)),
+                  onPressed: () {
+                    setState(() {
+                      if (mapAction.isEmpty) return;
+                      mapAction.remove(actionIndex);
+                      actionIndex--;
+                    });
+                  },
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -1045,11 +974,12 @@ class _ActionPageState extends State<ActionPage> {
 }
 
 Future<void> createFile() async {
-  PdfDocument document = PdfDocument();
+  db.saveData();
+  /*PdfDocument document = PdfDocument();
   document.pages.add();
 
   List<int> bytes = await document.save();
   document.dispose();
 
-  saveAndLaunchFile(bytes, '$documentName.pdf');
+  saveAndLaunchFile(bytes, '$documentName.pdf');*/
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'document.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:hive_flutter/hive_flutter.dart';
+import 'database.dart';
 
 Text platForm() {
   if (GetPlatform.isAndroid) {
@@ -24,7 +27,20 @@ Text platForm() {
   return const Text("Error");
 }
 
-void main() => runApp(MyApp());
+DataBase db = DataBase();
+
+void main() async {
+  // init the hive
+  await Hive.initFlutter();
+  await Hive.openBox('box');
+  // open the box
+  final box = Hive.box('box');
+  for (int i = 0; i < box.length; i++) {
+    print(box.keyAt(i));
+    print(box.getAt(i));
+  }
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -51,16 +67,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // reference the hive box
+  final _box = Hive.box('box');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            platForm(),
-            const Icon(Icons.home),
-            const Text(" Accueil"),
+          children: const [
+            Icon(Icons.home),
+            Text(" Accueil"),
           ],
         ),
       ),
@@ -70,26 +88,33 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (BuildContext context) {
-                          return const DocumentPage();
-                        },
-                      ),
-                    );
-                  });
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.add),
-                    Text(" Nouveau Document"),
-                  ],
-                ),
-              ),
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) {
+                              return DocumentPage(ID: db.getTheNextKey());
+                            },
+                          ),
+                        );
+                      });
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.add),
+                        Text(" Nouveau Document"),
+                      ],
+                    ),
+                  ),
+                  for (int i = 0; i < _box.length; i++)
+                    ElevatedButton(
+                        onPressed: () {}, child: Text(_box.getAt(i)[0])),
+                ],
+              )
             ],
           ),
         ],
