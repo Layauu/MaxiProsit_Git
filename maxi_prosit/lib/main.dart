@@ -91,13 +91,8 @@ class _HomePageState extends State<HomePage> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (BuildContext context) {
-                              return DocumentPage(iD: db.getTheNextKey());
-                            },
-                          ),
-                        );
+                        _navigateAndDisplaySelection(
+                            context, DocumentPage(iD: db.getTheNextKey()));
                       });
                     },
                     child: Row(
@@ -114,13 +109,8 @@ class _HomePageState extends State<HomePage> {
                         ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (BuildContext context) {
-                                    return DocumentPage(iD: _box.keyAt(i));
-                                  },
-                                ),
-                              );
+                              _navigateAndDisplaySelection(
+                                  context, DocumentPage(iD: _box.keyAt(i)));
                             });
                           },
                           child: Text(_box.getAt(i)[0][0]),
@@ -142,5 +132,14 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  void _navigateAndDisplaySelection(
+      BuildContext context, Widget document) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => document),
+    );
+    setState(() {});
   }
 }

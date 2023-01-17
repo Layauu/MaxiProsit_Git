@@ -65,12 +65,6 @@ class _DocumentPageState extends State<DocumentPage> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: GestureDetector(
-          child: Icon(Icons.arrow_back_ios),
-          onTap: () {
-            Navigator.pop(context);
-          },
-        ),
         centerTitle: true,
         title: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -88,9 +82,9 @@ class _DocumentPageState extends State<DocumentPage> {
                         cursorColor: Colors.black,
                         onSubmitted: (text) {
                           setState(() {
-                            db.a[0][0] = "yo";
-                            print(db.a[0][0]);
+                            db.a[0][0] = text;
                             documentNameWidget = Text(db.a[0][0]);
+                            db.saveData();
                           });
                         },
                         decoration: InputDecoration(
@@ -99,7 +93,6 @@ class _DocumentPageState extends State<DocumentPage> {
                         ),
                       ),
                     );
-                    print("works");
                   });
                 },
                 child: documentNameWidget,
@@ -138,7 +131,7 @@ class _DocumentPageState extends State<DocumentPage> {
         color: Colors.yellow,
         child: InkWell(
           onTap: () {
-            createFile();
+            db.saveData();
           },
           child: Padding(
             padding: const EdgeInsets.only(top: 8.0),
@@ -193,6 +186,7 @@ class _InformationPageState extends State<InformationPage> {
                   child: TextField(
                     onChanged: (value) {
                       db.a[0][1] = value;
+                      db.saveData();
                     },
                     controller: TextEditingController(text: db.a[0][1]),
                     cursorColor: Colors.black,
@@ -215,6 +209,7 @@ class _InformationPageState extends State<InformationPage> {
                   child: TextField(
                     onChanged: (value) {
                       db.a[0][2] = value;
+                      db.saveData();
                     },
                     controller: TextEditingController(text: db.a[0][2]),
                     cursorColor: Colors.black,
@@ -255,6 +250,7 @@ class _ObjectPageState extends State<ObjectPage> {
             child: TextFormField(
               onChanged: (value) {
                 db.a[widget.pageIndex][index] = value;
+                db.saveData();
               },
               controller:
                   TextEditingController(text: db.a[widget.pageIndex][index]),
@@ -269,6 +265,7 @@ class _ObjectPageState extends State<ObjectPage> {
             onPressed: () {
               setState(() {
                 db.a[widget.pageIndex].removeAt(index);
+                db.saveData();
               });
             },
             child: const Icon(Icons.delete_forever),
@@ -295,6 +292,7 @@ class _ObjectPageState extends State<ObjectPage> {
                   onPressed: () {
                     setState(() {
                       db.a[widget.pageIndex].add("");
+                      db.saveData();
                     });
                   },
                 ),
@@ -305,8 +303,4 @@ class _ObjectPageState extends State<ObjectPage> {
       ),
     );
   }
-}
-
-Future<void> createFile() async {
-  db.saveData();
 }
