@@ -35,6 +35,7 @@ void main() async {
   await Hive.openBox('box');
   // open the box
   final box = Hive.box('box');
+  print(box.length);
   for (int i = 0; i < box.length; i++) {
     print(box.keyAt(i));
     print(box.getAt(i));

@@ -65,10 +65,18 @@ class DataBase {
   }
 
   int getTheNextKey() {
-    if (_box.length == 0) {
+    int index = 0;
+    while (true) {
+      if (!_box.containsKey(index)) {
+        return index;
+      } else {
+        index++;
+      }
+    }
+    /*if (_box.length == 0) {
       return 0;
     } else {
       return _box.keyAt(_box.length - 1) + 1;
-    }
+    }*/
   }
 }
