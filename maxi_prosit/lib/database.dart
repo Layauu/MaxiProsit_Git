@@ -2,66 +2,67 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 
 class DataBase {
+//Private
   // reference the hive box
   final _box = Hive.box('box');
 
-  int documentID = 1;
-  String documentName = "Nouveau Document";
-  String prositUrl = "";
-  String prositTitle = "";
-  List<String> keyWords = [];
-  String stringContext = "";
-  List<String> problems = [];
-  List<String> constraints = [];
-  List<String> deliverables = [];
-  List<String> generalisings = [];
-  List<String> hypothesises = [];
-  List<String> solutions = [];
-  List<String> actions = [];
+  int documentID;
 
-  late List a = [
-    documentName,
-    prositUrl,
-    prositTitle,
-    keyWords,
-    stringContext,
-    problems,
-    constraints,
-    deliverables,
-    generalisings,
-    hypothesises,
-    solutions,
-    actions,
-  ];
-
-  void createInitialData() {
-    documentName = "Nouveau Document";
-    prositUrl = "";
-    prositTitle = "";
-    keyWords = [];
-    stringContext = "";
-    problems = [];
-    constraints = [];
-    deliverables = [];
-    generalisings = [];
-    hypothesises = [];
-    solutions = [];
-    actions = [];
+  DataBase(this.documentID) {
+    _loadData();
   }
 
+  String _documentName = "";
+  String _prositUrl = "";
+  String _prositTitle = "";
+
+  late List<String> _informations = [_documentName, _prositTitle, _prositUrl];
+  List<String> _keyWords = [];
+  List<String> _contexts = [];
+  List<String> _problems = [];
+  List<String> _constraints = [];
+  List<String> _deliverables = [];
+  List<String> _generalisings = [];
+  List<String> _hypothesises = [];
+  List<String> _solutions = [];
+  List<String> _actions = [];
+
+  void _loadData() {
+    if (_box.containsKey(documentID)) {
+      List list = _box.get(documentID);
+      _informations = list[0];
+      _keyWords = list[1];
+      _contexts = list[2];
+      _problems = list[3];
+      _constraints = list[4];
+      _deliverables = list[5];
+      _generalisings = list[6];
+      _hypothesises = list[7];
+      _solutions = list[8];
+      _actions = list[9];
+    } else {
+      _createInitialData();
+    }
+  }
+
+  void _createInitialData() {
+    _documentName = "Nouveau Document";
+    _prositUrl = "";
+    _prositTitle = "";
+    _keyWords = [];
+    _contexts = [];
+    _problems = [];
+    _constraints = [];
+    _deliverables = [];
+    _generalisings = [];
+    _hypothesises = [];
+    _solutions = [];
+    _actions = [];
+  }
+
+// Public
   void saveData() {
     _box.put(documentID, a);
-  }
-
-  void loadData() {
-    if (_box.containsKey(documentID)) {
-      List b = _box.get(documentID);
-      for (int i = 0; i < b.length; i++) {
-        a[i] = b[i];
-      }
-    } else {
-      createInitialData();
-    }
   }
 
   int getTheNextKey() {
@@ -73,10 +74,18 @@ class DataBase {
         index++;
       }
     }
-    /*if (_box.length == 0) {
-      return 0;
-    } else {
-      return _box.keyAt(_box.length - 1) + 1;
-    }*/
   }
+
+  late List a = [
+    _informations,
+    _keyWords,
+    _contexts,
+    _problems,
+    _constraints,
+    _deliverables,
+    _generalisings,
+    _hypothesises,
+    _solutions,
+    _actions,
+  ];
 }

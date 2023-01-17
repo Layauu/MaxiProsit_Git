@@ -27,7 +27,7 @@ Text platForm() {
   return const Text("Error");
 }
 
-DataBase db = DataBase();
+DataBase db = DataBase(0);
 
 void main() async {
   // init the hive
@@ -36,10 +36,7 @@ void main() async {
   // open the box
   final box = Hive.box('box');
   print(box.length);
-  for (int i = 0; i < box.length; i++) {
-    print(box.keyAt(i));
-    print(box.getAt(i));
-  }
+  for (int i = 0; i < box.length; i++) print(box.getAt(i));
   runApp(const MyApp());
 }
 
@@ -97,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (BuildContext context) {
-                              return DocumentPage(ID: db.getTheNextKey());
+                              return DocumentPage(iD: db.getTheNextKey());
                             },
                           ),
                         );
@@ -112,8 +109,32 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   for (int i = 0; i < _box.length; i++)
-                    ElevatedButton(
-                        onPressed: () {}, child: Text(_box.getAt(i)[0])),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (BuildContext context) {
+                                    return DocumentPage(iD: _box.keyAt(i));
+                                  },
+                                ),
+                              );
+                            });
+                          },
+                          child: Text(_box.getAt(i)[0][0]),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _box.deleteAt(i);
+                            });
+                          },
+                          child: const Icon(Icons.delete_forever),
+                        )
+                      ],
+                    ),
                 ],
               )
             ],
