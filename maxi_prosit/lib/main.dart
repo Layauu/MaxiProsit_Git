@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'document.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'database.dart';
 
@@ -117,9 +116,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            setState(() {
-                              _box.deleteAt(i);
-                            });
+                            showAlertDialog(context, i, _box)
+                                .then((_) => setState(() {}));
+                            //_box.deleteAt(i);
                           },
                           child: const Icon(Icons.delete_forever),
                         )
@@ -142,4 +141,40 @@ class _HomePageState extends State<HomePage> {
     );
     setState(() {});
   }
+}
+
+Future<void> showAlertDialog(
+    BuildContext context, int docIndex, Box box) async {
+  // set up the buttons
+  Widget cancelButton = TextButton(
+    child: const Text("Annuler"),
+    onPressed: () {
+      Navigator.of(context).pop();
+    },
+  );
+  Widget continueButton = TextButton(
+    child: const Text("Continuer"),
+    onPressed: () {
+      box.deleteAt(docIndex);
+      Navigator.of(context).pop();
+    },
+  );
+  String text = "Voulez vous vraiment supprimer ${box.getAt(docIndex)[0][0]} ?";
+  // set up the AlertDialog
+  AlertDialog alert = AlertDialog(
+    title: const Text("Attention !"),
+    content: Text(text),
+    actions: [
+      cancelButton,
+      continueButton,
+    ],
+  );
+
+  // show the dialog
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
 }

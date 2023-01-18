@@ -1,10 +1,13 @@
+import 'notweb.dart' if (dart.library.html) 'web.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'dart:io';
-import 'mobile.dart' if (dart.library.html) 'web.dart';
-import 'package:flutter/services.dart';
 import 'database.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
+import 'package:file_picker/file_picker.dart';
+//import 'package:printing/printing.dart';
 
 double listBoxLength = 200;
 
@@ -63,6 +66,35 @@ class _DocumentPageState extends State<DocumentPage> {
       },
     );
 
+    final col = Column(
+      children: <Widget>[
+        Expanded(
+          child: pageList,
+        ),
+        Align(
+            alignment: FractionalOffset.bottomCenter,
+            // This container holds all the children that will be aligned
+            // on the bottom and should not scroll with the above ListView
+            child: Column(
+              children: <Widget>[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.save),
+                  title: const Text('Enregistrer'),
+                  onTap: () {},
+                ),
+                ListTile(
+                  leading: const Icon(Icons.save_alt),
+                  title: const Text('Exporter en PDF'),
+                  onTap: () {
+                    makePdf(context);
+                  },
+                )
+              ],
+            ))
+      ],
+    );
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -103,9 +135,7 @@ class _DocumentPageState extends State<DocumentPage> {
       ),
       endDrawer: GetPlatform.isMobile ||
               (MediaQuery.of(context).size.width < 500) //|| true
-          ? Drawer(
-              child: pageList,
-            )
+          ? Drawer(child: col)
           : null,
       body: Row(
         children: [
@@ -113,7 +143,7 @@ class _DocumentPageState extends State<DocumentPage> {
               (MediaQuery.of(context).size.width >= 500))
             SizedBox(
               width: listBoxLength,
-              child: pageList,
+              child: col,
             ),
           SizedBox(
             width: (!GetPlatform.isMobile) &&
@@ -125,27 +155,6 @@ class _DocumentPageState extends State<DocumentPage> {
             ),
           )
         ],
-      ),
-      bottomNavigationBar: Container(
-        height: 60,
-        color: Colors.yellow,
-        child: InkWell(
-          onTap: () {
-            db.saveData();
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Column(
-              children: const <Widget>[
-                Icon(
-                  Icons.fiber_new,
-                  color: Colors.black,
-                ),
-                Text('Générer'),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -303,4 +312,20 @@ class _ObjectPageState extends State<ObjectPage> {
       ),
     );
   }
+}
+
+void makePdf(context) async {
+  final pdf = pw.Document();
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (pw.Context context) {
+        return pw.Center(
+          child: pw.Text("Hello World"),
+        ); // Center
+      },
+    ),
+  );
+  final pdfFile = CreatePDFfile(pdf, db.a[0][0]);
+  pdfFile.create();
 }
