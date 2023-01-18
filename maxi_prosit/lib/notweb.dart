@@ -12,20 +12,11 @@ class CreatePDFfile {
   CreatePDFfile(this._pdf, this._fileName);
 
   void create() async {
-    print(requestFilePermission().toString());
-    print("Using notweb");
-    var status = await Permission.camera.status;
+    var status = await Permission.storage.status;
     print(status);
-    if (!await Permission.contacts.request().isGranted) return;
     if (!status.isGranted) {
-      await Permission.camera.request();
+      await Permission.storage.request();
       print("asked");
-    }
-    if (await Permission.storage.isPermanentlyDenied) {
-      // The user opted to never again see the permission request dialog for this
-      // app. The only way to change the permission's status now is to let the
-      // user manually enable it in the system settings.
-      openAppSettings();
     }
     String? path = await FilePicker.platform.getDirectoryPath();
     if (path == null) {
