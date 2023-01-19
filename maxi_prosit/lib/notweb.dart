@@ -24,6 +24,7 @@ class CreatePDFfile {
     }
     print(path);
     final file = io.File("$path/$_fileName.pdf");
+    file.existsSync();
     await file.writeAsBytes(await _pdf.save());
   }
 }

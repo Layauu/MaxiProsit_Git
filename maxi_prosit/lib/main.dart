@@ -156,20 +156,19 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             onTap: () async {
-              setState(() async {
-                if (status.isGranted) {
-                  print('granted');
-                }
-                if (status.isDenied) {
-                  print('denied');
-                  await storage.request();
-                }
-                if (status.isPermanentlyDenied) {
-                  print('permanentlyDenied');
+              if (status.isGranted) {
+                print('granted');
+              }
+              if (status.isDenied) {
+                print('denied');
+                await storage.request();
+              }
+              if (status.isPermanentlyDenied) {
+                print('permanentlyDenied');
 
-                  openAppSettings();
-                }
-              });
+                openAppSettings();
+              }
+              setState(() {});
               //setState(() {});
             },
           ),
