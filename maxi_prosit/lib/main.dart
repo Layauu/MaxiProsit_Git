@@ -32,7 +32,7 @@ DataBase db = DataBase(0);
 Permission storage = Permission.unknown;
 PermissionStatus status = PermissionStatus.restricted;
 void f() async {
-  status = await storage.status;
+  if (GetPlatform.isMobile) status = await storage.status;
 }
 
 void main() async {

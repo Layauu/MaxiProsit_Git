@@ -12,11 +12,13 @@ class CreatePDFfile {
   CreatePDFfile(this._pdf, this._fileName);
 
   void create() async {
-    var status = await Permission.storage.status;
-    print(status);
-    if (!status.isGranted) {
-      await Permission.storage.request();
-      print("asked");
+    if (GetPlatform.isMobile) {
+      var status = await Permission.storage.status;
+      print(status);
+      if (!status.isGranted) {
+        await Permission.storage.request();
+        print("asked");
+      }
     }
     String? path = await FilePicker.platform.getDirectoryPath();
     if (path == null) {
