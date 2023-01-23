@@ -122,7 +122,6 @@ class _DocumentPageState extends State<DocumentPage> {
       endDrawer: GetPlatform.isMobile ||
               (MediaQuery.of(context).size.width < 500) //|| true
           ? Drawer(
-              shadowColor: Colors.yellow,
               child: col,
             )
           : null,
