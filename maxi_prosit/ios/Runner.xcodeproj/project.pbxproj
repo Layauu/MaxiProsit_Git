@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -68,7 +68,6 @@
 				32508BC00903350A0647B0DF /* Pods-Runner.release.xcconfig */,
 				FF27A004111944D13C12216C /* Pods-Runner.profile.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -357,15 +356,17 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 6SL4PPVCNR;
 				ENABLE_BITCODE = NO;
 				FLUTTER_APPLICATION_PATH = /Users/leo/Documents/MaxiProsit_Git/maxi_prosit;
 				FLUTTER_ROOT = /Library/Flutter;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Maxi Prosit";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.maxiProsit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.testing.maxiProsit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -494,6 +495,7 @@
 				FLUTTER_APPLICATION_PATH = /Users/leo/Documents/MaxiProsit_Git/maxi_prosit;
 				FLUTTER_ROOT = /Library/Flutter;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Maxi Prosit";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -514,15 +516,17 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 6SL4PPVCNR;
 				ENABLE_BITCODE = NO;
 				FLUTTER_APPLICATION_PATH = /Users/leo/Documents/MaxiProsit_Git/maxi_prosit;
 				FLUTTER_ROOT = /Library/Flutter;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Maxi Prosit";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.maxiProsit;
+				PRODUCT_BUNDLE_IDENTIFIER = com.testing.maxiProsit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
