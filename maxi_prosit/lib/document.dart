@@ -1,13 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'notweb.dart' if (dart.library.html) 'web.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'database.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-
-import 'package:file_picker/file_picker.dart';
-//import 'package:printing/printing.dart';
 
 double listBoxLength = 200;
 
@@ -36,12 +33,10 @@ class DocumentPage extends StatefulWidget {
 
 class _DocumentPageState extends State<DocumentPage> {
   int currentIndex = 0;
-  String documentName = "yo";
-  late Widget documentNameWidget = Text(documentName);
+  late Widget documentNameWidget = Text(db.a[0][0]);
   @override
   Widget build(BuildContext context) {
     db = DataBase(widget.iD);
-    documentName = db.a[0][0];
     late ListView pageList = ListView.builder(
       itemCount: pagesNames.length,
       itemBuilder: (context, index) {
@@ -58,6 +53,10 @@ class _DocumentPageState extends State<DocumentPage> {
                 ? () {
                     setState(() {
                       currentIndex = index;
+                      if (GetPlatform.isMobile ||
+                          (MediaQuery.of(context).size.width < 500)) {
+                        Navigator.pop(context);
+                      }
                     });
                   }
                 : null,
@@ -71,27 +70,14 @@ class _DocumentPageState extends State<DocumentPage> {
         Expanded(
           child: pageList,
         ),
-        Align(
-            alignment: FractionalOffset.bottomCenter,
-            // This container holds all the children that will be aligned
-            // on the bottom and should not scroll with the above ListView
-            child: Column(
-              children: <Widget>[
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.save),
-                  title: const Text('Enregistrer'),
-                  onTap: () {},
-                ),
-                ListTile(
-                  leading: const Icon(Icons.save_alt),
-                  title: const Text('Exporter en PDF'),
-                  onTap: () {
-                    makePdf(context);
-                  },
-                )
-              ],
-            ))
+        const Divider(),
+        ListTile(
+          leading: const Icon(CupertinoIcons.arrow_down_doc),
+          title: const Text('Exporter en PDF'),
+          onTap: () {
+            makePdf(context);
+          },
+        ),
       ],
     );
 
@@ -135,7 +121,10 @@ class _DocumentPageState extends State<DocumentPage> {
       ),
       endDrawer: GetPlatform.isMobile ||
               (MediaQuery.of(context).size.width < 500) //|| true
-          ? Drawer(child: col)
+          ? Drawer(
+              shadowColor: Colors.yellow,
+              child: col,
+            )
           : null,
       body: Row(
         children: [
@@ -185,51 +174,53 @@ class _InformationPageState extends State<InformationPage> {
         scrollDirection: Axis.vertical,
         child: Column(
           children: [
-            Row(
-              children: [
-                const Text("Titre du prosit : "),
-                Container(
-                  width: 250,
-                  alignment: Alignment.centerLeft,
-                  color: Colors.white,
-                  child: TextField(
-                    onChanged: (value) {
-                      db.a[0][1] = value;
-                      db.saveData();
-                    },
-                    controller: TextEditingController(text: db.a[0][1]),
-                    cursorColor: Colors.black,
-                    decoration: const InputDecoration(
-                      hoverColor: Colors.black,
-                      border: OutlineInputBorder(),
-                      hintText: "",
-                    ),
-                  ),
-                ),
-              ],
+            const Text(
+              "Titre du prosit : ",
+              style: TextStyle(fontSize: 24),
             ),
-            Row(
-              children: [
-                const Text("Url du prosit : "),
-                Container(
-                  width: 250,
-                  alignment: Alignment.centerLeft,
-                  color: Colors.white,
-                  child: TextField(
-                    onChanged: (value) {
-                      db.a[0][2] = value;
-                      db.saveData();
-                    },
-                    controller: TextEditingController(text: db.a[0][2]),
-                    cursorColor: Colors.black,
-                    decoration: const InputDecoration(
-                      hoverColor: Colors.black,
-                      border: OutlineInputBorder(),
-                      hintText: "",
-                    ),
-                  ),
+            const Divider(height: 16),
+            Container(
+              width: 250,
+              alignment: Alignment.centerLeft,
+              color: Colors.white,
+              child: TextField(
+                onChanged: (value) {
+                  db.a[0][1] = value;
+                  db.saveData();
+                },
+                controller: TextEditingController(text: db.a[0][1]),
+                cursorColor: Colors.black,
+                decoration: const InputDecoration(
+                  hoverColor: Colors.black,
+                  border: OutlineInputBorder(),
+                  hintText: "",
                 ),
-              ],
+              ),
+            ),
+            const Divider(height: 32),
+            const Text(
+              "Url du prosit : ",
+              style: TextStyle(fontSize: 24),
+            ),
+            const Divider(height: 16),
+            Container(
+              width: 250,
+              alignment: Alignment.centerLeft,
+              color: Colors.white,
+              child: TextField(
+                maxLines: null,
+                onChanged: (value) {
+                  db.a[0][2] = value;
+                  db.saveData();
+                },
+                controller: TextEditingController(text: db.a[0][2]),
+                cursorColor: Colors.black,
+                decoration: const InputDecoration(
+                  hoverColor: Colors.black,
+                  border: OutlineInputBorder(),
+                  hintText: "",
+                ),
+              ),
             ),
           ],
         ),
@@ -257,6 +248,7 @@ class _ObjectPageState extends State<ObjectPage> {
             alignment: Alignment.centerLeft,
             color: Colors.white,
             child: TextFormField(
+              maxLines: null,
               onChanged: (value) {
                 db.a[widget.pageIndex][index] = value;
                 db.saveData();
@@ -270,15 +262,19 @@ class _ObjectPageState extends State<ObjectPage> {
               ),
             ),
           ),
-          ElevatedButton(
+          const Text(" "),
+          FloatingActionButton(
+            mini: true,
+            backgroundColor: Colors.red.shade400,
+            heroTag: index,
             onPressed: () {
               setState(() {
                 db.a[widget.pageIndex].removeAt(index);
                 db.saveData();
               });
             },
-            child: const Icon(Icons.delete_forever),
-          )
+            child: const Icon(CupertinoIcons.trash),
+          ),
         ],
       );
     }
@@ -288,24 +284,37 @@ class _ObjectPageState extends State<ObjectPage> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            Text(pagesNames[widget.pageIndex]),
+            Text(
+              pagesNames[widget.pageIndex],
+              style: const TextStyle(fontSize: 24),
+            ),
+            const Divider(height: 16),
             Column(
               children: List.generate(db.a[widget.pageIndex].length, (index) {
                 return row(index);
               }),
             ),
-            Row(
-              children: [
-                ElevatedButton(
-                  child: const Text("+", style: TextStyle(color: Colors.black)),
+            const Divider(height: 10),
+            SizedBox(
+              height: 45,
+              width: 125,
+              child: FittedBox(
+                child: FloatingActionButton.extended(
+                  heroTag: HeroController(),
                   onPressed: () {
                     setState(() {
                       db.a[widget.pageIndex].add("");
                       db.saveData();
                     });
                   },
+                  label: Row(
+                    children: const [
+                      Icon(CupertinoIcons.add),
+                      Text(" Ajouter", style: TextStyle(fontSize: 20))
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -317,12 +326,72 @@ class _ObjectPageState extends State<ObjectPage> {
 void makePdf(context) async {
   final pdf = pw.Document();
   pdf.addPage(
-    pw.Page(
+    pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       build: (pw.Context context) {
-        return pw.Center(
-          child: pw.Text("Hello World"),
-        ); // Center
+        return [
+          pw.Divider(
+            thickness: 1,
+          ),
+          pw.Row(
+            mainAxisSize: pw.MainAxisSize.max,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  db.a[0][0],
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          pw.Divider(
+            thickness: 1,
+          ),
+          pw.Row(
+            mainAxisSize: pw.MainAxisSize.max,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  'Titre du prosit : ${db.a[0][1]} ',
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          pw.Text('\n\n\n'),
+          for (int i = 1; i < db.a.length; i++) ...[
+            pw.Row(
+              mainAxisSize: pw.MainAxisSize.max,
+              children: [
+                pw.Text('${pagesNames[i]} : '),
+              ],
+            ),
+            pw.Text("\n"),
+            for (int j = 0; j < db.a[i].length; j++)
+              pw.Row(
+                children: [
+                  pw.Text(
+                    ' - ${db.a[i][j]}',
+                  ),
+                ],
+              ),
+            pw.Text("\n\n"),
+          ],
+          pw.Divider(
+            thickness: 1,
+          ),
+          pw.Row(
+            mainAxisSize: pw.MainAxisSize.max,
+            children: [
+              pw.Expanded(
+                child: pw.Text(
+                  'URL du Prosit : ${db.a[0][2]}',
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ];
       },
     ),
   );

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'document.dart';
 import 'package:get/get.dart';
@@ -5,35 +6,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'database.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-Text platForm() {
-  if (GetPlatform.isAndroid) {
-    return const Text("Android");
-  }
-  if (GetPlatform.isIOS) {
-    return const Text("IOS");
-  }
-  if (GetPlatform.isLinux) {
-    return const Text("Linux");
-  }
-  if (GetPlatform.isMacOS) {
-    return const Text("MacOS");
-  }
-  if (GetPlatform.isWeb) {
-    return const Text("Web");
-  }
-  if (GetPlatform.isWindows) {
-    return const Text("Windows");
-  }
-  return const Text("Error");
-}
-
 DataBase db = DataBase(0);
 
 Permission storage = Permission.unknown;
 PermissionStatus status = PermissionStatus.restricted;
-void f() async {
-  status = await storage.status;
-}
 
 void main() async {
   // init the hive
@@ -44,11 +20,8 @@ void main() async {
   }
   await Hive.initFlutter();
   await Hive.openBox('box');
-  // open the box
-  final box = Hive.box('box');
-  print(box.length);
-  for (int i = 0; i < box.length; i++) print(box.getAt(i));
-  f();
+
+  status = await storage.status;
   runApp(const MyApp());
 }
 
@@ -79,6 +52,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // reference the hive box
   final _box = Hive.box('box');
+  bool edit = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,8 +60,7 @@ class _HomePageState extends State<HomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.home),
-            Text(" Accueil"),
+            Text(" Maxi Prosit"),
           ],
         ),
       ),
@@ -99,82 +72,99 @@ class _HomePageState extends State<HomePage> {
             children: [
               Column(
                 children: [
-                  ElevatedButton(
+                  FloatingActionButton.extended(
+                    heroTag: HeroController(),
+                    label: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(CupertinoIcons.doc_text),
+                        Text(" Nouveau Document"),
+                      ],
+                    ),
                     onPressed: () {
                       setState(() {
                         _navigateAndDisplaySelection(
                             context, DocumentPage(iD: db.getTheNextKey()));
                       });
                     },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.add),
-                        Text(" Nouveau Document"),
-                      ],
-                    ),
                   ),
-                  for (int i = 0; i < _box.length; i++)
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _navigateAndDisplaySelection(
-                                  context, DocumentPage(iD: _box.keyAt(i)));
-                            });
-                          },
-                          child: Text(_box.getAt(i)[0][0]),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            showAlertDialog(context, i, _box)
-                                .then((_) => setState(() {}));
-                            //_box.deleteAt(i);
-                          },
-                          child: const Icon(Icons.delete_forever),
-                        )
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(height: 32),
+                          for (int i = 0; i < _box.length; i++) ...[
+                            Row(
+                              children: [
+                                OutlinedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _navigateAndDisplaySelection(context,
+                                          DocumentPage(iD: _box.keyAt(i)));
+                                    });
+                                  },
+                                  child: Text(_box.getAt(i)[0][0],
+                                      style:
+                                          const TextStyle(color: Colors.black)),
+                                ),
+                                const Text(' '),
+                              ],
+                            ),
+                            const Divider(height: 16)
+                          ]
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          for (int i = 0; i < _box.length; i++) ...[
+                            edit
+                                ? Row(children: [
+                                    FloatingActionButton(
+                                      mini: true,
+                                      backgroundColor: Colors.red.shade400,
+                                      heroTag: HeroController(),
+                                      onPressed: () {
+                                        showAlertDialog(context, i, _box)
+                                            .then((_) => setState(() {}));
+                                      },
+                                      child: const Icon(CupertinoIcons.trash),
+                                    ),
+                                    FloatingActionButton(
+                                      mini: true,
+                                      backgroundColor: Colors.blue.shade400,
+                                      heroTag: HeroController(),
+                                      onPressed: () {
+                                        setState(() {
+                                          _box.put(db.getTheNextKey(),
+                                              _box.getAt(i));
+                                        });
+                                      },
+                                      child: const Icon(
+                                          CupertinoIcons.plus_square_on_square),
+                                    ),
+                                  ])
+                                : const Text(""),
+                            const Divider(height: 4)
+                          ]
+                        ],
+                      )
+                    ],
+                  ),
                 ],
               )
             ],
           ),
         ],
       ),
-      drawer: Drawer(
-          child: ListView(
-        children: [
-          ListTile(
-            title: Row(
-              children: [
-                const Text('Storage : '),
-                (status.isGranted)
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : const Icon(Icons.no_accounts, color: Colors.red),
-                (status.isRestricted) ? Text("hey") : Text(""),
-              ],
-            ),
-            onTap: () async {
-              setState(() async {
-                if (status.isGranted) {
-                  print('granted');
-                }
-                if (status.isDenied) {
-                  print('denied');
-                  await storage.request();
-                }
-                if (status.isPermanentlyDenied) {
-                  print('permanentlyDenied');
-
-                  openAppSettings();
-                }
-              });
-              //setState(() {});
-            },
-          ),
-        ],
-      )),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            edit = !edit;
+          });
+        },
+        child: const Icon(CupertinoIcons.bars),
+      ),
     );
   }
 
@@ -191,14 +181,16 @@ class _HomePageState extends State<HomePage> {
 Future<void> showAlertDialog(
     BuildContext context, int docIndex, Box box) async {
   // set up the buttons
-  Widget cancelButton = TextButton(
-    child: const Text("Annuler"),
+
+  Widget cancelButton = FloatingActionButton.extended(
+    backgroundColor: Colors.red,
+    label: const Text("Annuler", style: TextStyle(color: Colors.black)),
     onPressed: () {
       Navigator.of(context).pop();
     },
   );
-  Widget continueButton = TextButton(
-    child: const Text("Continuer"),
+  Widget continueButton = FloatingActionButton.extended(
+    label: const Text("Continuer"),
     onPressed: () {
       box.deleteAt(docIndex);
       Navigator.of(context).pop();
