@@ -1,27 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'document.dart';
-import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'database.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 DataBase db = DataBase(0);
 
-Permission storage = Permission.unknown;
-PermissionStatus status = PermissionStatus.restricted;
-
 void main() async {
   // init the hive
-  if (GetPlatform.isAndroid) {
-    storage = Permission.manageExternalStorage;
-  } else {
-    storage = Permission.storage;
-  }
   await Hive.initFlutter();
   await Hive.openBox('box');
 
-  status = await storage.status;
   runApp(const MyApp());
 }
 
