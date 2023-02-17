@@ -151,6 +151,9 @@ class _DocumentPageState extends State<DocumentPage> {
 Widget pageSelector(currentIndex) {
   if (currentIndex == 0) {
     return const InformationPage();
+  }
+  if (currentIndex == 9) {
+    return ActionPage(pageIndex: currentIndex);
   } else {
     return ObjectPage(
       pageIndex: currentIndex,
@@ -396,4 +399,109 @@ void makePdf(context) async {
   );
   final pdfFile = CreatePDFfile(pdf, db.a[0][0]);
   pdfFile.create();
+}
+
+class ActionPage extends StatefulWidget {
+  int pageIndex;
+  ActionPage({Key? key, required this.pageIndex}) : super(key: key);
+  @override
+  State<ActionPage> createState() => _ActionPageState();
+}
+
+class _ActionPageState extends State<ActionPage> {
+  @override
+  Widget build(BuildContext context) {
+    Row row(index) {
+      return Row(
+        key: Key('$index'),
+        children: [
+          Text(' ${index + 1}. '),
+          Container(
+            width: 250,
+            alignment: Alignment.centerLeft,
+            color: Colors.white,
+            child: TextFormField(
+              maxLines: null,
+              onChanged: (value) {
+                db.a[widget.pageIndex][index] = value;
+                db.saveData();
+              },
+              controller: TextEditingController(text: db.a[9][index]),
+              cursorColor: Colors.black,
+              decoration: const InputDecoration(
+                hoverColor: Colors.black,
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          const Text(" "),
+          FloatingActionButton(
+            mini: true,
+            backgroundColor: Colors.red.shade400,
+            heroTag: index,
+            onPressed: () {
+              setState(() {
+                db.a[9].removeAt(index);
+                db.saveData();
+              });
+            },
+            child: const Icon(CupertinoIcons.trash),
+          ),
+        ],
+      );
+    }
+
+    return SizedBox(
+      width: 400,
+      height: MediaQuery.of(context).size.height,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            pagesNames[widget.pageIndex],
+            style: const TextStyle(fontSize: 24),
+          ),
+          const Divider(height: 16),
+          ReorderableListView(
+            shrinkWrap: true,
+            onReorder: (oldIndex, newIndex) {
+              setState(() {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                final String item = db.a[9].removeAt(oldIndex);
+                db.a[9].insert(newIndex, item);
+              });
+            },
+            children: List.generate(db.a[widget.pageIndex].length, (index) {
+              return row(index);
+            }),
+          ),
+          const Divider(height: 10),
+          SizedBox(
+            height: 45,
+            width: 125,
+            child: FittedBox(
+              child: FloatingActionButton.extended(
+                heroTag: HeroController(),
+                onPressed: () {
+                  setState(() {
+                    db.a[widget.pageIndex].add("");
+                    db.saveData();
+                  });
+                },
+                label: Row(
+                  children: const [
+                    Icon(CupertinoIcons.add),
+                    Text(" Ajouter", style: TextStyle(fontSize: 20))
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
